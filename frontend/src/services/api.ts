@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AngeboteResponse, AngebotResponse } from '@/types';
 
 // Die URL zu deiner Strapi-API
-const API_URL = 'http://localhost:1337'; // Hardcoded zum Testen
+const API_URL = 'https://mannar-web.onrender.com'; // Direkt hardcoded
 
 // Axios-Instance erstellen (wie ein vorkonfiguriertes Werkzeug)
 const api = axios.create({
