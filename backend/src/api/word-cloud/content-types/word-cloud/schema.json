@@ -1,37 +1,61 @@
-{
+ {
   "kind": "collectionType",
   "collectionName": "word_clouds",
   "info": {
     "singularName": "word-cloud",
     "pluralName": "word-clouds",
-    "displayName": "Word Cloud"
+    "displayName": "Word Cloud",
+    "description": "Bearbeitbare Word Clouds für spirituelle Themen"
   },
   "options": {
     "draftAndPublish": true
   },
-  "pluginOptions": {},
+  "pluginOptions": {
+    "i18n": {
+      "localized": false
+    }
+  },
   "attributes": {
-    "wort": {
+    "titel": {
       "type": "string",
       "required": true,
-      "unique": true
-    },
-    "wichtigkeit": {
-      "type": "integer",
-      "required": true,
-      "default": 5,
-      "min": 1,
-      "max": 10
-    },
-    "link_url": {
-      "type": "string"
+      "maxLength": 255
     },
     "beschreibung": {
-      "type": "blocks"
+      "type": "text"
     },
-    "farbe": {
+    "istAktiv": {
+      "type": "boolean",
+      "default": true
+    },
+    "sortierung": {
+      "type": "integer",
+      "default": 0
+    },
+    "woerter": {
+      "type": "component",
+      "repeatable": true,
+      "component": "word-cloud.wort"
+    },
+    "hintergrundfarbe": {
       "type": "string",
-      "default": "#3b82f6"
+      "default": "#ffffff"
+    },
+    "textfarbe": {
+      "type": "string", 
+      "default": "#333333"
+    },
+    "hoverfarbe": {
+      "type": "string",
+      "default": "#007bff"
+    },
+    "maxBreite": {
+      "type": "integer",
+      "default": 800
+    },
+    "maxHoehe": {
+      "type": "integer", 
+      "default": 600
     }
   }
 }

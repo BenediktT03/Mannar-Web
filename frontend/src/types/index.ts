@@ -1,36 +1,60 @@
-// src/types/index.ts
-
-// Strapi 5 Struktur - Felder sind direkt im Objekt!
-export interface Angebot {
-  id: number;
-  documentId: string;  // Neu in Strapi 5
-  titel: string;       // Deutsche Feldnamen, direkt im Objekt
-  slug: string;
-  preis: number;
-  beschreibung?: unknown;  // Rich Text kann komplex sein
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
+ export interface WordCloudWort {
+  id?: number;
+  text: string;
+  gewichtung: number; // 1-10 (bestimmt Schriftgröße)
+  link?: string;
+  farbe?: string;
+  istExternerLink?: boolean;
+  beschreibung?: string;
 }
 
-// Strapi Meta-Informationen
-export interface StrapiMeta {
-  pagination?: {
-    page: number;
-    pageSize: number;
-    pageCount: number;
-    total: number;
+export interface WordCloud {
+  id: number;
+  documentId: string;
+  titel: string;
+  beschreibung?: string;
+  istAktiv: boolean;
+  sortierung: number;
+  woerter: WordCloudWort[];
+  hintergrundfarbe: string;
+  textfarbe: string;
+  hoverfarbe: string;
+  maxBreite: number;
+  maxHoehe: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
+
+export interface WordCloudsResponse {
+  data: WordCloud[];
+  meta: {
+    pagination: {
+      page: number;
+      pageSize: number;
+      pageCount: number;
+      total: number;
+    };
   };
 }
 
-// Für mehrere Angebote
-export interface AngeboteResponse {
-  data: Angebot[];
-  meta: StrapiMeta;
-}
-
-// Für ein einzelnes Angebot
-export interface AngebotResponse {
-  data: Angebot;
-  meta: StrapiMeta;
+export interface SeitenConfig {
+  id: number;
+  documentId: string;
+  seitenTitel: string;
+  seitenBeschreibung?: string;
+  primaryColor: string;
+  secondaryColor?: string;
+  backgroundColor: string;
+  textColor?: string;
+  headerColor?: string;
+  footerColor?: string;
+  kontaktEmail?: string;
+  telefon?: string;
+  adresse?: string;
+  customCSS?: string;
+  // Strapi Meta-Felder optional
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string;
 }

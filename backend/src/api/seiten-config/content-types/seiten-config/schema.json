@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "seiten_configs",
+  "info": {
+    "singularName": "seiten-config",
+    "pluralName": "seiten-configs",
+    "displayName": "Seiten Config"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "seitenTitel": {
+      "type": "string"
+    },
+    "primaryColor": {
+      "type": "string",
+      "default": "#6366f1"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "default": "#000000"
+    }
+  }
+}

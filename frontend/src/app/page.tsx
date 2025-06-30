@@ -1,76 +1,148 @@
-// src/app/page.tsx
-import { getAllWordClouds, WordCloud as WordCloudType } from '../services/api';
-import WordCloud, { WordCloudSkeleton } from '../components/WordCloud'; // ← components ist parallel zu app
-import { Suspense } from 'react';
-
-// Word Cloud Daten laden
-async function getWordCloudData() {
-  try {
-    const response = await getAllWordClouds();
-    return response.data;
-  } catch (error) {
-    console.error('Fehler beim Laden der Word Cloud:', error);
-    return [];
-  }
-}
+import React from 'react';
+import Link from 'next/link';
+import { getAllWordClouds, getSeitenConfig } from '@/services/api';
+import WordCloudComponent from '@/components/WordCloudComponent';
+import DynamicStyles from '@/components/DynamicStyles';
 
 export default async function Home() {
-  const wordCloudData = await getWordCloudData();
+  try {
+    const [wordCloudsResponse, seitenConfig] = await Promise.all([
+      getAllWordClouds(),
+      getSeitenConfig()
+    ]);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-800 mb-6">
-            Mannar
-          </h1>
-          <p className="text-2xl text-gray-600 mb-4">
-            Genesungsbegleitung & Spirituelle Unterstützung
-          </p>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Begleitung auf deinem persönlichen Weg der Heilung und des Wachstums. 
-            Entdecke die verschiedenen Bereiche meiner Arbeit.
-          </p>
-        </div>
+    const wordClouds = wordCloudsResponse.data || [];
+
+    return (
+      <>
+        <DynamicStyles config={seitenConfig} />
         
-        {/* Word Cloud Sektion */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            Meine Themenwelten
-          </h2>
-          
-          {wordCloudData.length === 0 ? (
-            <div className="text-center text-gray-600 py-12">
-              <p className="text-xl mb-4">🌱 Themenwelten werden geladen...</p>
-              <p className="text-sm">
-                Stelle sicher, dass du Word Cloud Einträge in Strapi erstellt hast.
+        <div 
+          className="min-h-screen" 
+          style={{ backgroundColor: seitenConfig.backgroundColor }}
+        >
+          {/* Header */}
+          <header 
+            className="py-8" 
+            style={{ backgroundColor: seitenConfig.headerColor || seitenConfig.primaryColor }}
+          >
+            <div className="container mx-auto px-4 text-center">
+              <h1 
+                className="text-4xl font-bold"
+                style={{ color: '#ffffff' }}
+              >
+                TEST - MANNAR WEBSITE - TEST
+              </h1>
+              <p 
+                className="mt-2 text-lg"
+                style={{ color: '#ffffff' }}
+              >
+                {seitenConfig.seitenBeschreibung || 'Peer-Begleitung und spirituelle Unterstützung'}
               </p>
+              
+              {/* LOGIN BUTTON */}
+              <div className="flex justify-center mt-4">
+                <Link 
+                  href="/login"
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-bold"
+                >
+                  🔐 LOGIN BUTTON
+                </Link>
+              </div>
             </div>
-          ) : (
-            <Suspense fallback={<WordCloudSkeleton />}>
-              <WordCloud words={wordCloudData} />
-            </Suspense>
-          )}
-        </section>
+          </header>
 
-        {/* Über Mannar Sektion */}
-        <section className="text-center bg-white p-8 rounded-2xl shadow-lg">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">
-            Über meine Arbeit
-          </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Als Peer/Genesungsbegleiter unterstütze ich Menschen auf ihrem individuellen 
-            Weg der Heilung und persönlichen Entwicklung. Meine Arbeit verbindet 
-            praktische Begleitung mit spirituellen Ansätzen.
+          {/* Main Content */}
+          <main className="container mx-auto px-4 py-8">
+            {wordClouds.length > 0 ? (
+              <>
+                <div className="text-center mb-12">
+                  <h2 
+                    className="text-3xl font-bold mb-4"
+                    style={{ color: seitenConfig.textColor || '#111827' }}
+                  >
+                    Spirituelle Themen
+                  </h2>
+                  <p 
+                    className="text-lg"
+                    style={{ color: seitenConfig.textColor || '#111827' }}
+                  >
+                    Entdecke verschiedene Bereiche der spirituellen Begleitung
+                  </p>
+                </div>
+
+                {wordClouds.map((wordCloud) => (
+                  <WordCloudComponent key={wordCloud.id} wordCloud={wordCloud} />
+                ))}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <h2 
+                  className="text-2xl font-bold mb-4"
+                  style={{ color: seitenConfig.textColor || '#111827' }}
+                >
+                  Noch keine Word Clouds verfügbar
+                </h2>
+                <p style={{ color: seitenConfig.textColor || '#111827' }}>
+                  Erstelle deine erste Word Cloud im Strapi Admin Panel.
+                </p>
+                <div className="mt-6">
+                  <Link 
+                    href="/login"
+                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                  >
+                    Zum Admin Login →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer 
+            className="py-8 mt-12"
+            style={{ backgroundColor: seitenConfig.footerColor || seitenConfig.headerColor || seitenConfig.primaryColor }}
+          >
+            <div className="container mx-auto px-4 text-center">
+              <p style={{ color: '#ffffff' }}>
+                © 2025 {seitenConfig.seitenTitel}. Alle Rechte vorbehalten.
+              </p>
+              {seitenConfig.kontaktEmail && (
+                <p className="mt-2">
+                  <a 
+                    href={`mailto:${seitenConfig.kontaktEmail}`}
+                    style={{ color: seitenConfig.secondaryColor || '#10b981' }}
+                    className="hover:underline"
+                  >
+                    {seitenConfig.kontaktEmail}
+                  </a>
+                </p>
+              )}
+            </div>
+          </footer>
+        </div>
+      </>
+    );
+  } catch (error) {
+    console.error('Fehler beim Laden der Seite:', error);
+    
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Fehler beim Laden
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Bitte überprüfe, ob das Strapi Backend läuft.
           </p>
-          <div className="mt-8">
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold">
-              Kontakt aufnehmen
-            </button>
-          </div>
-        </section>
+          <Link 
+            href="/login"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+          >
+            Zum Admin Login
+          </Link>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

@@ -1,0 +1,23 @@
+ {
+  "collectionName": "components_social_social_links",
+  "info": {
+    "displayName": "Social Link",
+    "description": "Social Media Verlinkung"
+  },
+  "options": {},
+  "attributes": {
+    "plattform": {
+      "type": "enumeration",
+      "enum": ["facebook", "instagram", "twitter", "linkedin", "youtube", "whatsapp", "email"],
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    },
+    "istSichtbar": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

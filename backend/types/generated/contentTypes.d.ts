@@ -373,9 +373,42 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSeitenConfigSeitenConfig extends Struct.SingleTypeSchema {
+  collectionName: 'seiten_configs';
+  info: {
+    displayName: 'Seiten Config';
+    pluralName: 'seiten-configs';
+    singularName: 'seiten-config';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    backgroundColor: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'#000000'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::seiten-config.seiten-config'
+    > &
+      Schema.Attribute.Private;
+    primaryColor: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'#6366f1'>;
+    publishedAt: Schema.Attribute.DateTime;
+    seitenTitel: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiWordCloudWordCloud extends Struct.CollectionTypeSchema {
   collectionName: 'word_clouds';
   info: {
+    description: 'Bearbeitbare Word Clouds f\u00FCr spirituelle Themen';
     displayName: 'Word Cloud';
     pluralName: 'word-clouds';
     singularName: 'word-cloud';
@@ -383,36 +416,40 @@ export interface ApiWordCloudWordCloud extends Struct.CollectionTypeSchema {
   options: {
     draftAndPublish: true;
   };
+  pluginOptions: {
+    i18n: {
+      localized: false;
+    };
+  };
   attributes: {
-    beschreibung: Schema.Attribute.Blocks;
+    beschreibung: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    farbe: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#3b82f6'>;
-    link_url: Schema.Attribute.String;
+    hintergrundfarbe: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'#ffffff'>;
+    hoverfarbe: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#007bff'>;
+    istAktiv: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::word-cloud.word-cloud'
     > &
       Schema.Attribute.Private;
+    maxBreite: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<800>;
+    maxHoehe: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<600>;
     publishedAt: Schema.Attribute.DateTime;
+    sortierung: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    textfarbe: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#333333'>;
+    titel: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    wichtigkeit: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 10;
-          min: 1;
-        },
-        number
-      > &
-      Schema.Attribute.DefaultTo<5>;
-    wort: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    woerter: Schema.Attribute.Component<'word-cloud.wort', true>;
   };
 }
 
@@ -925,6 +962,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::seiten-config.seiten-config': ApiSeitenConfigSeitenConfig;
       'api::word-cloud.word-cloud': ApiWordCloudWordCloud;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
