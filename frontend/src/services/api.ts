@@ -1,11 +1,36 @@
 // src/services/api.ts
 import axios from 'axios';
-import { AngeboteResponse, AngebotResponse } from '@/types';
+
+// Word Cloud Interfaces direkt hier definieren
+export interface WordCloud {
+  id: number;
+  documentId: string;
+  wort: string;
+  wichtigkeit: number;
+  link_url?: string;
+  beschreibung?: unknown;
+  farbe?: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface WordCloudResponse {
+  data: WordCloud[];
+  meta: {
+    pagination?: {
+      page: number;
+      pageSize: number;
+      pageCount: number;
+      total: number;
+    };
+  };
+}
 
 // Die URL zu deiner Strapi-API
-const API_URL = 'https://mannar-web.onrender.com'; // Direkt hardcoded
+const API_URL = 'http://localhost:1337';
 
-// Axios-Instance erstellen (wie ein vorkonfiguriertes Werkzeug)
+// Axios-Instance erstellen
 const api = axios.create({
   baseURL: `${API_URL}/api`,
   headers: {
@@ -13,50 +38,20 @@ const api = axios.create({
   },
 });
 
-// Fehlerbehandlung
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Alle Angebote holen
-export const getAllAngebote = async (): Promise<AngeboteResponse> => {
+// Word Cloud API Calls
+export const getAllWordClouds = async (): Promise<WordCloudResponse> => {
   try {
-    console.log('API_URL:', API_URL);
-    console.log('Calling:', `${API_URL}/api/angebots`);
-    const response = await api.get('/angebots'); // ← Jetzt richtig: angebots statt angebote
-    console.log('Response:', response.data);
-    console.log('First item:', response.data.data[0]); // ← Neue Zeile zum Debuggen
+    console.log('Loading Word Clouds...');
+    console.log('API URL:', `${API_URL}/api/word-clouds`);
+    const response = await api.get('/word-clouds');
+    console.log('Word Clouds loaded:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Fehler beim Laden der Angebote:', error);
+    console.error('Fehler beim Laden der Word Cloud:', error);
     if (axios.isAxiosError(error)) {
-      console.error('Axios error details:', error.response?.data);
       console.error('Status:', error.response?.status);
+      console.error('Data:', error.response?.data);
       console.error('URL:', error.config?.url);
-    }
-    throw error;
-  }
-};
-
-// Ein einzelnes Angebot holen
-export const getAngebotBySlug = async (slug: string): Promise<AngebotResponse> => {
-  try {
-    const response = await api.get(`/angebots?filters[slug][$eq]=${slug}`); // ← Auch hier: angebots
-    if (response.data.data.length === 0) {
-      throw new Error('Angebot nicht gefunden');
-    }
-    return {
-      data: response.data.data[0],
-      meta: response.data.meta,
-    };
-  } catch (error) {
-    console.error('Fehler beim Laden des Angebots:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error details:', error.response?.data);
     }
     throw error;
   }

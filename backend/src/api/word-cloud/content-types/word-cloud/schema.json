@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "word_clouds",
+  "info": {
+    "singularName": "word-cloud",
+    "pluralName": "word-clouds",
+    "displayName": "Word Cloud"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "wort": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "wichtigkeit": {
+      "type": "integer",
+      "required": true,
+      "default": 5,
+      "min": 1,
+      "max": 10
+    },
+    "link_url": {
+      "type": "string"
+    },
+    "beschreibung": {
+      "type": "blocks"
+    },
+    "farbe": {
+      "type": "string",
+      "default": "#3b82f6"
+    }
+  }
+}

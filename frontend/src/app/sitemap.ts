@@ -1,14 +1,15 @@
 // src/app/sitemap.ts
 import { MetadataRoute } from 'next';
-import { getAllAngebote } from '@/services/api';
+import { getAllWordClouds } from '../services/api';      // ← Ein Level hoch zu services
+import { WordCloud } from '../types/wordcloud';         // ← Ein Level hoch zu types
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ben-devtest-websites.ch';
   
   try {
-    // Alle Angebote für Sitemap laden
-    const response = await getAllAngebote();
-    const angebote = response.data;
+    // Word Cloud Daten für Sitemap laden
+    const response = await getAllWordClouds();
+    const wordClouds = response.data;
 
     // Statische Seiten
     const staticPages: MetadataRoute.Sitemap = [
@@ -20,15 +21,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     ];
 
-    // Dynamische Angebot-Seiten
-    const angebotPages: MetadataRoute.Sitemap = angebote.map((angebot) => ({
-      url: `${baseUrl}/angebot/${angebot.slug}`,        // Direkt angebot.slug
-      lastModified: new Date(angebot.updatedAt),        // Direkt angebot.updatedAt
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }));
+    // Dynamische Seiten basierend auf Word Cloud Links
+    const wordCloudPages: MetadataRoute.Sitemap = wordClouds
+      .filter((word: WordCloud) => word.link_url && word.link_url.startsWith('/')) // Nur interne Links
+      .map((word: WordCloud) => ({
+        url: `${baseUrl}${word.link_url}`,
+        lastModified: new Date(word.updatedAt),
+        changeFrequency: 'weekly' as const,
+        priority: word.wichtigkeit > 7 ? 0.8 : 0.6, // Wichtigere Wörter = höhere Priorität
+      }));
 
-    return [...staticPages, ...angebotPages];
+    return [...staticPages, ...wordCloudPages];
   } catch (error) {
     console.error('Fehler beim Generieren der Sitemap:', error);
     

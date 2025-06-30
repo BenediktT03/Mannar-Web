@@ -373,12 +373,12 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiAngebotAngebot extends Struct.CollectionTypeSchema {
-  collectionName: 'angebots';
+export interface ApiWordCloudWordCloud extends Struct.CollectionTypeSchema {
+  collectionName: 'word_clouds';
   info: {
-    displayName: 'angebot';
-    pluralName: 'angebots';
-    singularName: 'angebot';
+    displayName: 'Word Cloud';
+    pluralName: 'word-clouds';
+    singularName: 'word-cloud';
   };
   options: {
     draftAndPublish: true;
@@ -388,19 +388,31 @@ export interface ApiAngebotAngebot extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    farbe: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#3b82f6'>;
+    link_url: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::angebot.angebot'
+      'api::word-cloud.word-cloud'
     > &
       Schema.Attribute.Private;
-    preis: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.String & Schema.Attribute.Required;
-    titel: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    wichtigkeit: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<5>;
+    wort: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
   };
 }
 
@@ -913,7 +925,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
-      'api::angebot.angebot': ApiAngebotAngebot;
+      'api::word-cloud.word-cloud': ApiWordCloudWordCloud;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

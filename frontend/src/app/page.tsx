@@ -1,64 +1,75 @@
 // src/app/page.tsx
-import { getAllAngebote } from '@/services/api';
-import { Angebot } from '@/types';
-import Link from 'next/link';
+import { getAllWordClouds, WordCloud as WordCloudType } from '../services/api';
+import WordCloud, { WordCloudSkeleton } from '../components/WordCloud'; // ← components ist parallel zu app
+import { Suspense } from 'react';
 
-// Diese Funktion lädt die Daten VOR dem Rendern der Seite
-async function getAngebote() {
+// Word Cloud Daten laden
+async function getWordCloudData() {
   try {
-    const response = await getAllAngebote();
+    const response = await getAllWordClouds();
     return response.data;
   } catch (error) {
-    console.error('Fehler beim Laden der Angebote:', error);
+    console.error('Fehler beim Laden der Word Cloud:', error);
     return [];
   }
 }
 
 export default async function Home() {
-  const angebote = await getAngebote();
+  const wordCloudData = await getWordCloudData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
-          Unsere Angebote
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-12">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold text-gray-800 mb-6">
+            Mannar
+          </h1>
+          <p className="text-2xl text-gray-600 mb-4">
+            Genesungsbegleitung & Spirituelle Unterstützung
+          </p>
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+            Begleitung auf deinem persönlichen Weg der Heilung und des Wachstums. 
+            Entdecke die verschiedenen Bereiche meiner Arbeit.
+          </p>
+        </div>
         
-        {angebote.length === 0 ? (
-          <div className="text-center text-gray-600">
-            <p>Keine Angebote verfügbar.</p>
-            <p className="text-sm mt-2">
-              Stelle sicher, dass Strapi läuft und Testdaten existieren.
-            </p>
+        {/* Word Cloud Sektion */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
+            Meine Themenwelten
+          </h2>
+          
+          {wordCloudData.length === 0 ? (
+            <div className="text-center text-gray-600 py-12">
+              <p className="text-xl mb-4">🌱 Themenwelten werden geladen...</p>
+              <p className="text-sm">
+                Stelle sicher, dass du Word Cloud Einträge in Strapi erstellt hast.
+              </p>
+            </div>
+          ) : (
+            <Suspense fallback={<WordCloudSkeleton />}>
+              <WordCloud words={wordCloudData} />
+            </Suspense>
+          )}
+        </section>
+
+        {/* Über Mannar Sektion */}
+        <section className="text-center bg-white p-8 rounded-2xl shadow-lg">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">
+            Über meine Arbeit
+          </h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Als Peer/Genesungsbegleiter unterstütze ich Menschen auf ihrem individuellen 
+            Weg der Heilung und persönlichen Entwicklung. Meine Arbeit verbindet 
+            praktische Begleitung mit spirituellen Ansätzen.
+          </p>
+          <div className="mt-8">
+            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold">
+              Kontakt aufnehmen
+            </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {angebote.map((angebot: Angebot) => (
-              <div 
-                key={angebot.id} 
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-              >
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {angebot.titel}
-                </h2>
-                <p className="text-gray-600 mb-4 line-clamp-3">
-                  Angebot verfügbar - Preis: {angebot.preis.toFixed(2)} CHF
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {angebot.preis.toFixed(2)} CHF
-                  </span>
-                  <Link 
-                    href={`/angebot/${angebot.slug}`}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Details
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        </section>
       </div>
     </div>
   );
