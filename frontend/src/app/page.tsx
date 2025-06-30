@@ -1,319 +1,445 @@
+// src/app/page.tsx
+// 🕉️ MANNAR'S SPIRITUAL HOMEPAGE - Genesungsbegleitung
+
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Heart, Star, Circle, Phone, Mail, Instagram, Facebook } from 'lucide-react';
+import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 
-// Simulierte Word Cloud Daten - später von Strapi API
-const mockWordCloudData = {
-  title: "Spirituelle Reise",
-  words: [
-    { text: "Achtsamkeit", weight: 8, color: "#8B5CF6", link: "/achtsamkeit" },
-    { text: "Innere Ruhe", weight: 9, color: "#06B6D4", link: "/ruhe" },
-    { text: "Heilung", weight: 7, color: "#10B981", link: "/heilung" },
-    { text: "Transformation", weight: 10, color: "#F59E0B", link: "/transformation" },
-    { text: "Bewusstsein", weight: 6, color: "#EF4444", link: "/bewusstsein" },
-    { text: "Meditation", weight: 8, color: "#8B5CF6", link: "/meditation" },
-    { text: "Energie", weight: 5, color: "#06B6D4", link: "/energie" },
-    { text: "Balance", weight: 7, color: "#10B981", link: "/balance" },
-    { text: "Spiritualität", weight: 9, color: "#F59E0B", link: "/spiritualitaet" },
-    { text: "Selbstliebe", weight: 8, color: "#EF4444", link: "/selbstliebe" },
-    { text: "Chakren", weight: 6, color: "#8B5CF6", link: "/chakren" },
-    { text: "Licht", weight: 5, color: "#06B6D4", link: "/licht" },
-    { text: "Vertrauen", weight: 7, color: "#10B981", link: "/vertrauen" },
-    { text: "Harmonie", weight: 6, color: "#F59E0B", link: "/harmonie" },
-    { text: "Intuition", weight: 8, color: "#EF4444", link: "/intuition" }
-  ],
-  backgroundColor: "#0F0F23",
-  globalTextColor: "#FFFFFF"
-};
+// ===============================
+// TYPES & INTERFACES
+// ===============================
 
-// Word Cloud Component
-const WordCloudDisplay: React.FC<{ data: typeof mockWordCloudData; className?: string }> = ({ data, className = "" }) => {
-  const [hoveredWord, setHoveredWord] = useState<string | null>(null);
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-  // Dynamische Positionierung basierend auf Gewichtung
-  const getWordPosition = (index: number, weight: number) => {
-    const positions = [
-      { top: '20%', left: '15%' },
-      { top: '10%', left: '45%' },
-      { top: '25%', left: '70%' },
-      { top: '45%', left: '20%' },
-      { top: '35%', left: '50%' },
-      { top: '55%', left: '75%' },
-      { top: '70%', left: '10%' },
-      { top: '65%', left: '40%' },
-      { top: '80%', left: '65%' },
-      { top: '15%', left: '80%' },
-      { top: '50%', left: '85%' },
-      { top: '75%', left: '85%' },
-      { top: '85%', left: '25%' },
-      { top: '30%', left: '85%' },
-      { top: '60%', left: '5%' }
-    ];
-    return positions[index] || { top: '50%', left: '50%' };
-  };
+interface ContactFormData {
+  name: string;
+  email: string;
+  message: string;
+}
 
-  return (
-    <div className={`relative w-full h-full min-h-[600px] overflow-hidden ${className}`}
-         style={{ backgroundColor: data.backgroundColor }}>
-      {data.words.map((word, index) => {
-        const position = getWordPosition(index, word.weight);
-        const fontSize = Math.max(12, word.weight * 2.5);
-        const isHovered = hoveredWord === word.text;
-        
-        return (
-          <div
-            key={word.text}
-            className="absolute cursor-pointer transition-all duration-300 ease-out transform hover:scale-110"
-            style={{
-              top: position.top,
-              left: position.left,
-              transform: 'translate(-50%, -50%)',
-              fontSize: `${fontSize}px`,
-              color: word.color,
-              textShadow: isHovered ? `0 0 20px ${word.color}` : `0 0 10px ${word.color}40`,
-            }}
-            onMouseEnter={() => setHoveredWord(word.text)}
-            onMouseLeave={() => setHoveredWord(null)}
-            onClick={() => word.link && window.open(word.link, '_blank')}
-          >
-            <span className="font-semibold whitespace-nowrap select-none">
-              {word.text}
-            </span>
-          </div>
-        );
-      })}
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-10 right-10 opacity-20">
-        <Heart className="w-8 h-8 text-purple-300" />
-      </div>
-      <div className="absolute bottom-20 left-10 opacity-20">
-        <Star className="w-6 h-6 text-cyan-300" />
-      </div>
-      <div className="absolute top-1/3 left-5 opacity-15">
-        <Circle className="w-4 h-4 text-green-300" />
-      </div>
-    </div>
-  );
-};
+// ===============================
+// SPIRITUAL WORD CLOUD DATA
+// ===============================
 
-// Main Homepage Component
-const MannarHomepage: React.FC = () => {
-  const [scrollY, setScrollY] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+const spiritualWords = [
+  { text: 'Heilung', weight: 8, color: '#8B5E3C' },
+  { text: 'Vertrauen', weight: 7, color: '#D17C62' },
+  { text: 'Würde', weight: 6, color: '#8B5E3C' },
+  { text: 'Verbindung', weight: 9, color: '#D17C62' },
+  { text: 'Selbstbestimmung', weight: 8, color: '#8B5E3C' },
+  { text: 'Empathie', weight: 7, color: '#D17C62' },
+  { text: 'Achtsamkeit', weight: 6, color: '#8B5E3C' },
+  { text: 'Transformation', weight: 8, color: '#D17C62' },
+  { text: 'Mitgefühl', weight: 5, color: '#8B5E3C' },
+  { text: 'Hoffnung', weight: 7, color: '#D17C62' },
+];
+
+// ===============================
+// ANIMATED LOGO COMPONENT
+// ===============================
+
+const AnimatedLogo: React.FC = () => {
+  const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-      // Logo verschwindet nach 200px scrollen
-      setIsVisible(window.scrollY > 200);
-    };
+    const timer = setTimeout(() => {
+      setIsRevealed(true);
+    }, 1500);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => clearTimeout(timer);
   }, []);
 
-  const scrollToContent = () => {
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth'
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
-      {/* Hero Section - Logo Only */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated Background Particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-pulse"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${3 + Math.random() * 2}s`
-              }}
-            >
-              <div className="w-1 h-1 bg-white/20 rounded-full"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Logo Container */}
-        <div 
-          className="text-center transform transition-all duration-1000 ease-out"
+    <div className="flex items-center justify-center mb-8">
+      <div className="relative">
+        {/* M Logo - Initial State */}
+        <div
+          className={`transition-all duration-1000 ease-in-out ${
+            isRevealed ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+          }`}
           style={{
-            opacity: scrollY > 100 ? 0 : 1,
-            transform: `translateY(${scrollY * 0.5}px) scale(${1 - scrollY * 0.001})`
+            position: isRevealed ? 'absolute' : 'relative',
+            top: isRevealed ? '50%' : '0',
+            left: isRevealed ? '50%' : '0',
+            transform: isRevealed ? 'translate(-50%, -50%)' : 'translate(0, 0)',
           }}
         >
-          {/* Main Logo/Title */}
-          <div className="mb-8">
-            <h1 className="text-8xl md:text-9xl font-thin text-white/90 tracking-wider mb-4">
-              MANNAR
-            </h1>
-            <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent mx-auto mb-6"></div>
-            <p className="text-xl md:text-2xl text-white/70 font-light tracking-wide">
-              Spirituelle Begleitung
-            </p>
-          </div>
-
-          {/* Scroll Indicator */}
-          <div className="animate-bounce mt-16">
-            <button 
-              onClick={scrollToContent}
-              className="group flex flex-col items-center space-y-2 hover:text-purple-300 transition-colors duration-300"
-            >
-              <span className="text-white/60 text-sm uppercase tracking-widest">
-                Entdecken
-              </span>
-              <ChevronDown className="w-6 h-6 text-white/60 group-hover:text-purple-300 transition-colors duration-300" />
-            </button>
+          <div className="text-8xl md:text-9xl font-serif text-[#8B5E3C] animate-pulse">
+            M
           </div>
         </div>
 
-        {/* Gradient Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-900 to-transparent"></div>
-      </section>
-
-      {/* Main Content Section */}
-      <section className="relative min-h-screen bg-slate-900">
-        {/* Introduction */}
-        <div 
-          className={`container mx-auto px-6 py-20 transition-all duration-1000 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        {/* Mannar Text - Revealed State */}
+        <div
+          className={`transition-all duration-1000 ease-in-out delay-500 ${
+            isRevealed ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
           }`}
         >
-          {/* About Mannar */}
-          <div className="max-w-4xl mx-auto text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-light text-white mb-8">
-              Willkommen auf deiner spirituellen Reise
-            </h2>
-            <p className="text-xl text-white/80 leading-relaxed mb-8">
-              Ich bin Mannar, deine Begleiterin auf dem Weg zu innerem Frieden, 
-              Selbsterkenntnis und spirituellem Wachstum. Gemeinsam entdecken wir 
-              die Kraft deiner Seele und finden Balance in deinem Leben.
-            </p>
-            <div className="flex justify-center space-x-8 text-purple-300">
-              <div className="text-center">
-                <Heart className="w-8 h-8 mx-auto mb-2" />
-                <span className="text-sm">Herzensarbeit</span>
-              </div>
-              <div className="text-center">
-                <Star className="w-8 h-8 mx-auto mb-2" />
-                <span className="text-sm">Transformation</span>
-              </div>
-              <div className="text-center">
-                <Circle className="w-8 h-8 mx-auto mb-2" />
-                <span className="text-sm">Ganzheitlichkeit</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Word Cloud Section - Main Attraction */}
-          <div className="mb-20">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl md:text-4xl font-light text-white mb-4">
-                Deine spirituelle Landkarte
-              </h3>
-              <p className="text-lg text-white/70 max-w-2xl mx-auto">
-                Entdecke die verschiedenen Aspekte deiner spirituellen Reise. 
-                Jedes Wort repräsentiert einen Baustein auf deinem Weg zur Selbsterkenntnis.
-              </p>
-            </div>
-            
-            {/* Word Cloud Container */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/10">
-              <WordCloudDisplay data={mockWordCloudData} />
-            </div>
-          </div>
-
-          {/* Services Preview */}
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center hover:bg-slate-800/50 transition-all duration-300">
-              <Heart className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-              <h4 className="text-xl font-light text-white mb-3">Einzelsitzungen</h4>
-              <p className="text-white/70">
-                Persönliche spirituelle Begleitung in einem geschützten Raum
-              </p>
-            </div>
-            
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center hover:bg-slate-800/50 transition-all duration-300">
-              <Star className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-              <h4 className="text-xl font-light text-white mb-3">Meditation</h4>
-              <p className="text-white/70">
-                Geführte Meditationen für innere Ruhe und Klarheit
-              </p>
-            </div>
-            
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center hover:bg-slate-800/50 transition-all duration-300">
-              <Circle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-              <h4 className="text-xl font-light text-white mb-3">Energiearbeit</h4>
-              <p className="text-white/70">
-                Harmonisierung und Balance deiner Lebensenergie
-              </p>
-            </div>
-          </div>
-
-          {/* Contact Section */}
-          <div className="text-center">
-            <h3 className="text-3xl font-light text-white mb-8">
-              Bereit für deine Reise?
-            </h3>
-            <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
-              Kontaktiere mich für ein unverbindliches Gespräch und lass uns gemeinsam 
-              den ersten Schritt auf deinem spirituellen Weg gehen.
-            </p>
-            
-            {/* Contact Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
-              <a 
-                href="tel:+41-xxx-xxx-xxxx"
-                className="flex items-center space-x-3 bg-purple-600/20 hover:bg-purple-600/30 backdrop-blur-sm border border-purple-400/30 rounded-full px-8 py-4 text-white transition-all duration-300 hover:scale-105"
-              >
-                <Phone className="w-5 h-5" />
-                <span>Anrufen</span>
-              </a>
-              
-              <a 
-                href="mailto:kontakt@mannar.ch"
-                className="flex items-center space-x-3 bg-cyan-600/20 hover:bg-cyan-600/30 backdrop-blur-sm border border-cyan-400/30 rounded-full px-8 py-4 text-white transition-all duration-300 hover:scale-105"
-              >
-                <Mail className="w-5 h-5" />
-                <span>E-Mail schreiben</span>
-              </a>
-            </div>
-
-            {/* Social Links */}
-            <div className="flex justify-center space-x-6">
-              <a href="#" className="text-white/60 hover:text-purple-400 transition-colors duration-300">
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-white/60 hover:text-purple-400 transition-colors duration-300">
-                <Facebook className="w-6 h-6" />
-              </a>
-            </div>
-          </div>
+          <h1 className="text-6xl md:text-7xl font-serif text-[#8B5E3C] tracking-wide">
+            Mannar
+          </h1>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 border-t border-white/10 py-12">
-        <div className="container mx-auto px-6 text-center">
-          <div className="mb-6">
-            <h4 className="text-2xl font-light text-white mb-2">MANNAR</h4>
-            <p className="text-white/60">Spirituelle Begleitung mit Herz</p>
-          </div>
-          <div className="text-white/40 text-sm">
-            <p>&copy; 2024 Mannar. Alle Rechte vorbehalten.</p>
-            <p className="mt-2">Zürich, Schweiz</p>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };
 
-export default MannarHomepage;
+// ===============================
+// SPIRITUAL WORD CLOUD COMPONENT
+// ===============================
+
+const SpiritualWordCloud: React.FC = () => {
+  const [hoveredWord, setHoveredWord] = useState<string | null>(null);
+
+  return (
+    <div className="max-w-4xl mx-auto px-4">
+      <div className="text-center space-y-4">
+        <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6">
+          {spiritualWords.map((word, index) => (
+            <span
+              key={index}
+              className="inline-block transition-all duration-300 ease-in-out cursor-default"
+              style={{
+                fontSize: `${1 + (word.weight / 10) * 1.5}rem`,
+                color: word.color,
+                fontWeight: 300 + word.weight * 50,
+                transform: hoveredWord === word.text ? 'scale(1.2)' : 'scale(1)',
+                textShadow: hoveredWord === word.text ? '0 2px 8px rgba(139, 94, 60, 0.3)' : 'none',
+              }}
+              onMouseEnter={() => setHoveredWord(word.text)}
+              onMouseLeave={() => setHoveredWord(null)}
+            >
+              {word.text}
+            </span>
+          ))}
+        </div>
+        
+        <div className="mt-8 text-lg text-[#8B5E3C]/70 font-light tracking-wide">
+          Genesungsbegleitung · Spirituelle Führung · Persönliche Transformation
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===============================
+// SIDEBAR COMPONENT
+// ===============================
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const [activeSection, setActiveSection] = useState<string>('');
+  const [contactForm, setContactForm] = useState<ContactFormData>({
+    name: '',
+    email: '',
+    message: '',
+  });
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Implement contact form submission
+    console.log('Contact form submitted:', contactForm);
+    alert('Vielen Dank für Ihre Nachricht! Ich melde mich zeitnah bei Ihnen.');
+    setContactForm({ name: '', email: '', message: '' });
+  };
+
+  return (
+    <>
+      {/* Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 right-0 h-full w-80 md:w-96 bg-gradient-to-b from-[#F5E9DA] to-[#E0DDD8] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#8B5E3C]/10 hover:bg-[#8B5E3C]/20 transition-colors"
+        >
+          <span className="text-[#8B5E3C] text-xl">×</span>
+        </button>
+
+        <div className="p-6 pt-16 space-y-8">
+          {/* Über mich */}
+          <section>
+            <button
+              onClick={() => setActiveSection(activeSection === 'about' ? '' : 'about')}
+              className="w-full text-left text-xl font-serif text-[#8B5E3C] mb-4 hover:text-[#D17C62] transition-colors"
+            >
+              Über mich ✨
+            </button>
+            
+            {activeSection === 'about' && (
+              <div className="space-y-4 text-[#8B5E3C]/80 leading-relaxed animate-fadeIn">
+                <p className="font-medium text-[#8B5E3C]">
+                  Manuel "Mannar" Balldisin
+                </p>
+                <p>
+                  Als Genesungsbegleiter unterstütze ich Menschen dabei, ihre innere Stärke 
+                  wiederzufinden und einen Weg aus persönlichen Krisen zu entwickeln.
+                </p>
+                <p>
+                  Meine eigene Heilungsreise und professionelle Ausbildung ermöglichen es mir, 
+                  mit echter Empathie und bewährten Methoden zu begleiten.
+                </p>
+                <div className="bg-[#8B5E3C]/5 p-4 rounded-lg">
+                  <p className="text-sm italic">
+                    "Jeder Mensch trägt die Kraft zur Heilung bereits in sich. 
+                    Manchmal braucht es nur jemanden, der daran glaubt."
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Angebote */}
+          <section>
+            <button
+              onClick={() => setActiveSection(activeSection === 'services' ? '' : 'services')}
+              className="w-full text-left text-xl font-serif text-[#8B5E3C] mb-4 hover:text-[#D17C62] transition-colors"
+            >
+              Angebote & Leistungen 🌱
+            </button>
+            
+            {activeSection === 'services' && (
+              <div className="space-y-4 text-[#8B5E3C]/80 animate-fadeIn">
+                <div className="space-y-3">
+                  <div className="border-l-2 border-[#D17C62] pl-4">
+                    <h4 className="font-medium text-[#8B5E3C]">Einzelbegleitung</h4>
+                    <p className="text-sm">Persönliche 1:1 Gespräche zur individuellen Unterstützung</p>
+                  </div>
+                  
+                  <div className="border-l-2 border-[#D17C62] pl-4">
+                    <h4 className="font-medium text-[#8B5E3C]">Gruppencoachings</h4>
+                    <p className="text-sm">Workshops und Gruppensessions für gemeinsame Heilung</p>
+                  </div>
+                  
+                  <div className="border-l-2 border-[#D17C62] pl-4">
+                    <h4 className="font-medium text-[#8B5E3C]">Online & Präsenz</h4>
+                    <p className="text-sm">Flexible Termine - vor Ort oder digital</p>
+                  </div>
+                </div>
+                
+                <div className="bg-[#D17C62]/10 p-4 rounded-lg mt-4">
+                  <p className="text-sm font-medium text-[#8B5E3C] mb-2">Testimonials</p>
+                  <p className="text-xs italic text-[#8B5E3C]/70">
+                    "Mannar hat mir geholfen, wieder Vertrauen in mich selbst zu finden." - Sarah M.
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Kontakt */}
+          <section>
+            <button
+              onClick={() => setActiveSection(activeSection === 'contact' ? '' : 'contact')}
+              className="w-full text-left text-xl font-serif text-[#8B5E3C] mb-4 hover:text-[#D17C62] transition-colors"
+            >
+              Kontakt 🤝
+            </button>
+            
+            {activeSection === 'contact' && (
+              <div className="space-y-4 animate-fadeIn">
+                <div className="bg-[#8B5E3C]/5 p-4 rounded-lg mb-4">
+                  <p className="text-sm text-[#8B5E3C] font-medium mb-2">
+                    🌟 Kostenloses Erstgespräch
+                  </p>
+                  <p className="text-xs text-[#8B5E3C]/70">
+                    Lernen Sie mich kennen und entscheiden Sie in Ruhe, 
+                    ob eine Zusammenarbeit für Sie passend ist.
+                  </p>
+                </div>
+
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Ihr Name"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white/70 border border-[#8B5E3C]/20 rounded-lg focus:ring-2 focus:ring-[#D17C62] focus:border-[#D17C62] transition-colors"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <input
+                      type="email"
+                      placeholder="Ihre E-Mail"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white/70 border border-[#8B5E3C]/20 rounded-lg focus:ring-2 focus:ring-[#D17C62] focus:border-[#D17C62] transition-colors"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <textarea
+                      placeholder="Ihre Nachricht..."
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
+                      rows={4}
+                      className="w-full px-3 py-2 bg-white/70 border border-[#8B5E3C]/20 rounded-lg focus:ring-2 focus:ring-[#D17C62] focus:border-[#D17C62] transition-colors resize-none"
+                      required
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-[#8B5E3C] text-[#F5E9DA] py-3 rounded-lg font-medium hover:bg-[#D17C62] transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    Nachricht senden 💌
+                  </button>
+                </form>
+                
+                {/* Social Media */}
+                <div className="flex justify-center space-x-4 pt-4 border-t border-[#8B5E3C]/10">
+                  <a href="#" className="text-[#8B5E3C]/60 hover:text-[#D17C62] transition-colors">
+                    📧
+                  </a>
+                  <a href="#" className="text-[#8B5E3C]/60 hover:text-[#D17C62] transition-colors">
+                    📱
+                  </a>
+                  <a href="#" className="text-[#8B5E3C]/60 hover:text-[#D17C62] transition-colors">
+                    🌐
+                  </a>
+                </div>
+                
+                {/* Legal Links */}
+                <div className="text-center pt-4 border-t border-[#8B5E3C]/10">
+                  <div className="space-x-4 text-xs text-[#8B5E3C]/50">
+                    <a href="#" className="hover:text-[#D17C62] transition-colors">Impressum</a>
+                    <span>·</span>
+                    <a href="#" className="hover:text-[#D17C62] transition-colors">Datenschutz</a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// ===============================
+// ANIMATED BACKGROUND COMPONENT
+// ===============================
+
+const AnimatedBackground: React.FC = () => {
+  return (
+    <div className="fixed inset-0 -z-10">
+      {/* Gradient Background */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-[#F5E9DA] via-[#E0DDD8] to-[#F5E9DA]"
+        style={{
+          backgroundSize: '400% 400%',
+          animation: 'gradientShift 20s ease infinite',
+        }}
+      />
+      
+      {/* Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full opacity-20"
+            style={{
+              background: `radial-gradient(circle, ${i % 2 === 0 ? '#8B5E3C' : '#D17C62'} 0%, transparent 70%)`,
+              width: `${20 + i * 10}px`,
+              height: `${20 + i * 10}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${15 + i * 3}s ease-in-out infinite`,
+              animationDelay: `${i * 2}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <style jsx>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-20px) rotate(120deg); }
+          66% { transform: translateY(10px) rotate(240deg); }
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// ===============================
+// MAIN HOMEPAGE COMPONENT
+// ===============================
+
+const HomePage: React.FC = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen relative">
+      {/* Animated Background */}
+      <AnimatedBackground />
+      
+      {/* Taskbar Icon */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-6 right-6 z-30 w-12 h-12 bg-[#8B5E3C]/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-[#8B5E3C]/20 transition-all duration-300 hover:scale-110 group"
+      >
+        <div className="space-y-1.5">
+          <div className="w-5 h-0.5 bg-[#8B5E3C] transition-transform group-hover:rotate-12"></div>
+          <div className="w-5 h-0.5 bg-[#8B5E3C]"></div>
+          <div className="w-5 h-0.5 bg-[#8B5E3C] transition-transform group-hover:-rotate-12"></div>
+        </div>
+      </button>
+
+      {/* Main Content */}
+      <main className="flex items-center justify-center min-h-screen px-4">
+        <div className="text-center max-w-6xl mx-auto">
+          {/* Animated Logo */}
+          <ComponentErrorBoundary componentName="Animated Logo">
+            <AnimatedLogo />
+          </ComponentErrorBoundary>
+
+          {/* Spiritual Word Cloud */}
+          <ComponentErrorBoundary componentName="Spiritual Word Cloud">
+            <SpiritualWordCloud />
+          </ComponentErrorBoundary>
+        </div>
+      </main>
+
+      {/* Sidebar */}
+      <ComponentErrorBoundary componentName="Sidebar">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      </ComponentErrorBoundary>
+    </div>
+  );
+};
+
+export default HomePage;

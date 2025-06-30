@@ -373,75 +373,6 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiSeitenConfigSeitenConfig extends Struct.SingleTypeSchema {
-  collectionName: 'seiten_configs';
-  info: {
-    displayName: 'Seiten Config';
-    pluralName: 'seiten-configs';
-    singularName: 'seiten-config';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    backgroundColor: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'#000000'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::seiten-config.seiten-config'
-    > &
-      Schema.Attribute.Private;
-    primaryColor: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'#6366f1'>;
-    publishedAt: Schema.Attribute.DateTime;
-    seitenTitel: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiWordCloudWordCloud extends Struct.CollectionTypeSchema {
-  collectionName: 'word_clouds';
-  info: {
-    displayName: 'Word Cloud';
-    pluralName: 'word-clouds';
-    singularName: 'word-cloud';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    backgroundColor: Schema.Attribute.String;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    hoverColor: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::word-cloud.word-cloud'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    textColor: Schema.Attribute.String;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
-    words: Schema.Attribute.JSON;
-  };
-}
-
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -937,10 +868,6 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
       }>;
-    word_clouds: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::word-cloud.word-cloud'
-    >;
   };
 }
 
@@ -954,8 +881,6 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
-      'api::seiten-config.seiten-config': ApiSeitenConfigSeitenConfig;
-      'api::word-cloud.word-cloud': ApiWordCloudWordCloud;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

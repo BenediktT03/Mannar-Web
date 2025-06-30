@@ -65,12 +65,6 @@
       "target": "plugin::users-permissions.role",
       "inversedBy": "users",
       "configurable": false
-    },
-    "word_clouds": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::word-cloud.word-cloud",
-      "mappedBy": "user"
     }
   }
 }
