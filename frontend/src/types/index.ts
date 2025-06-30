@@ -7,7 +7,7 @@ export interface Angebot {
   titel: string;       // Deutsche Feldnamen, direkt im Objekt
   slug: string;
   preis: number;
-  beschreibung?: any;  // Rich Text kann komplex sein, erstmal any
+  beschreibung?: unknown;  // Rich Text kann komplex sein
   createdAt: string;
   updatedAt: string;
   publishedAt: string;

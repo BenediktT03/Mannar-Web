@@ -70,7 +70,7 @@ export default async function AngebotPage({ params }: PageProps) {
         </div>
       </div>
     );
-  } catch (error) {
+  } catch {
     // Wenn das Angebot nicht gefunden wird
     notFound();
   }
