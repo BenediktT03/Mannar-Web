@@ -39,17 +39,17 @@ export default async function Home() {
                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
               >
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {angebot.attributes.titel}
+                  {angebot.titel}
                 </h2>
                 <p className="text-gray-600 mb-4 line-clamp-3">
-                  {angebot.attributes.beschreibung}
+                  Angebot verfügbar - Preis: {angebot.preis.toFixed(2)} CHF
                 </p>
                 <div className="flex justify-between items-center">
                   <span className="text-2xl font-bold text-blue-600">
-                    {angebot.attributes.preis.toFixed(2)} CHF
+                    {angebot.preis.toFixed(2)} CHF
                   </span>
                   <Link 
-                    href={`/angebot/${angebot.attributes.slug}`}
+                    href={`/angebot/${angebot.slug}`}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
                   >
                     Details

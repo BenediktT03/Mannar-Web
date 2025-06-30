@@ -16,7 +16,7 @@ export async function generateStaticParams() {
     const response = await getAllAngebote();
     
     return response.data.map((angebot) => ({
-      slug: angebot.attributes.slug,
+      slug: angebot.slug,  // Direkt im Objekt, nicht in attributes
     }));
   } catch (error) {
     console.error('Fehler beim Generieren der Static Params:', error);
@@ -44,19 +44,20 @@ export default async function AngebotPage({ params }: PageProps) {
           {/* Angebot Details */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-4">
-              {angebot.attributes.titel}
+              {angebot.titel}
             </h1>
             
             <div className="text-3xl font-bold text-blue-600 mb-6">
-              {angebot.attributes.preis.toFixed(2)} CHF
+              {angebot.preis.toFixed(2)} CHF
             </div>
             
             <div className="prose max-w-none">
-              <div 
-                dangerouslySetInnerHTML={{ 
-                  __html: angebot.attributes.beschreibung 
-                }}
-              />
+              <p className="text-gray-700">
+                {typeof angebot.beschreibung === 'string' 
+                  ? angebot.beschreibung 
+                  : 'Detaillierte Beschreibung folgt...'
+                }
+              </p>
             </div>
             
             {/* Call-to-Action */}

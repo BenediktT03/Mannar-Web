@@ -1,34 +1,36 @@
 // src/types/index.ts
 
-// Das ist wie ein Bauplan für deine Angebote
+// Strapi 5 Struktur - Felder sind direkt im Objekt!
 export interface Angebot {
   id: number;
-  attributes: {
-    titel: string;
-    slug: string;
-    preis: number;
-    beschreibung: string;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string;
-  };
+  documentId: string;  // Neu in Strapi 5
+  titel: string;       // Deutsche Feldnamen, direkt im Objekt
+  slug: string;
+  preis: number;
+  beschreibung?: any;  // Rich Text kann komplex sein, erstmal any
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 
-// Strapi gibt uns die Daten immer so zurück
-export interface StrapiResponse<T> {
-  data: T;
-  meta: {
-    pagination?: {
-      page: number;
-      pageSize: number;
-      pageCount: number;
-      total: number;
-    };
+// Strapi Meta-Informationen
+export interface StrapiMeta {
+  pagination?: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
   };
 }
 
 // Für mehrere Angebote
-export type AngeboteResponse = StrapiResponse<Angebot[]>;
+export interface AngeboteResponse {
+  data: Angebot[];
+  meta: StrapiMeta;
+}
 
 // Für ein einzelnes Angebot
-export type AngebotResponse = StrapiResponse<Angebot>;
+export interface AngebotResponse {
+  data: Angebot;
+  meta: StrapiMeta;
+}
