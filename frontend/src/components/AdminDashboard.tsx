@@ -188,7 +188,16 @@ const AdminDashboard: React.FC = () => {
 
       {/* Live Word Cloud Editor Modal */}
       {showLiveEditor && (
-        <LiveWordCloudEditor onClose={() => setShowLiveEditor(false)} />
+        <LiveWordCloudEditor
+  onSave={async (wordCloudData) => {
+    console.log('Saving word cloud:', wordCloudData);
+    // TODO: Implement save logic
+  }}
+  onCancel={() => {
+    console.log('Cancel editing');
+    // TODO: Implement cancel logic
+  }}
+/>
       )}
     </>
   );

@@ -1,145 +1,60 @@
-import React from 'react';
+// src/app/page.tsx
+import { getAllAngebote } from '@/services/api';
 import Link from 'next/link';
-import { getAllWordClouds, getSeitenConfig } from '@/services/api';
-import WordCloudComponent from '@/components/WordCloudComponent';
-import DynamicStyles from '@/components/DynamicStyles';
 
-export default async function Home() {
+export default async function HomePage() {
   try {
-    const [wordCloudsResponse, seitenConfig] = await Promise.all([
-      getAllWordClouds(),
-      getSeitenConfig()
-    ]);
-
-    const wordClouds = wordCloudsResponse.data || [];
+    const response = await getAllAngebote();
+    const angebote = response.data || [];
 
     return (
-      <>
-        <DynamicStyles config={seitenConfig} />
-        
-        <div 
-          className="min-h-screen" 
-          style={{ backgroundColor: seitenConfig.backgroundColor }}
-        >
-          {/* Header */}
-          <header 
-            className="py-8" 
-            style={{ backgroundColor: seitenConfig.headerColor || seitenConfig.primaryColor }}
-          >
-            <div className="container mx-auto px-4 text-center">
-              <h1 
-                className="text-4xl font-bold"
-                style={{ color: '#ffffff' }}
-              >
-                TEST - MANNAR WEBSITE - TEST
-              </h1>
-              <p 
-                className="mt-2 text-lg"
-                style={{ color: '#ffffff' }}
-              >
-                {seitenConfig.seitenBeschreibung || 'Peer-Begleitung und spirituelle Unterstützung'}
-              </p>
-              
-              {/* LOGIN BUTTON */}
-              <div className="flex justify-center mt-4">
-                <Link 
-                  href="/login"
-                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-bold"
-                >
-                  🔐 LOGIN BUTTON
-                </Link>
-              </div>
-            </div>
-          </header>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+            Willkommen bei Mannar
+          </h1>
+          
+          <div className="mb-8">
+            <Link 
+              href="/login"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              🔐 Admin Login
+            </Link>
+          </div>
 
-          {/* Main Content */}
-          <main className="container mx-auto px-4 py-8">
-            {wordClouds.length > 0 ? (
-              <>
-                <div className="text-center mb-12">
-                  <h2 
-                    className="text-3xl font-bold mb-4"
-                    style={{ color: seitenConfig.textColor || '#111827' }}
-                  >
-                    Spirituelle Themen
-                  </h2>
-                  <p 
-                    className="text-lg"
-                    style={{ color: seitenConfig.textColor || '#111827' }}
-                  >
-                    Entdecke verschiedene Bereiche der spirituellen Begleitung
-                  </p>
+          {angebote.length > 0 && (
+            <div className="grid gap-6">
+              <h2 className="text-2xl font-semibold text-gray-800">Unsere Angebote</h2>
+              {angebote.map((angebot: any) => (
+                <div key={angebot.id} className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-xl font-semibold mb-2">{angebot.titel}</h3>
+                  <p className="text-gray-600">{angebot.beschreibung}</p>
+                  {angebot.preis && (
+                    <p className="text-lg font-bold text-blue-600 mt-4">
+                      {angebot.preis.toFixed(2)} CHF
+                    </p>
+                  )}
                 </div>
-
-                {wordClouds.map((wordCloud) => (
-                  <WordCloudComponent key={wordCloud.id} wordCloud={wordCloud} />
-                ))}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <h2 
-                  className="text-2xl font-bold mb-4"
-                  style={{ color: seitenConfig.textColor || '#111827' }}
-                >
-                  Noch keine Word Clouds verfügbar
-                </h2>
-                <p style={{ color: seitenConfig.textColor || '#111827' }}>
-                  Erstelle deine erste Word Cloud im Strapi Admin Panel.
-                </p>
-                <div className="mt-6">
-                  <Link 
-                    href="/login"
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
-                  >
-                    Zum Admin Login →
-                  </Link>
-                </div>
-              </div>
-            )}
-          </main>
-
-          {/* Footer */}
-          <footer 
-            className="py-8 mt-12"
-            style={{ backgroundColor: seitenConfig.footerColor || seitenConfig.headerColor || seitenConfig.primaryColor }}
-          >
-            <div className="container mx-auto px-4 text-center">
-              <p style={{ color: '#ffffff' }}>
-                © 2025 {seitenConfig.seitenTitel}. Alle Rechte vorbehalten.
-              </p>
-              {seitenConfig.kontaktEmail && (
-                <p className="mt-2">
-                  <a 
-                    href={`mailto:${seitenConfig.kontaktEmail}`}
-                    style={{ color: seitenConfig.secondaryColor || '#10b981' }}
-                    className="hover:underline"
-                  >
-                    {seitenConfig.kontaktEmail}
-                  </a>
-                </p>
-              )}
+              ))}
             </div>
-          </footer>
+          )}
         </div>
-      </>
+      </div>
     );
   } catch (error) {
-    console.error('Fehler beim Laden der Seite:', error);
-    
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">
-            Fehler beim Laden
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Willkommen bei Mannar
           </h1>
-          <p className="text-gray-600 mb-6">
-            Bitte überprüfe, ob das Strapi Backend läuft.
-          </p>
+          <p className="text-gray-600 mb-8">Spirituelle Begleitung und Word Clouds</p>
           <Link 
             href="/login"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Zum Admin Login
+            🔐 Admin Login
           </Link>
         </div>
       </div>

@@ -1,281 +1,499 @@
-// frontend/src/services/api.ts - KOMPLETTE DATEI
-import axios from 'axios';
-import { WordCloudsResponse, SeitenConfig } from '@/types';
+// src/services/api.ts
+// 🚀 ENHANCED API SERVICE - VOLLSTÄNDIG NEU IMPLEMENTIERT
+// Professionelles API Management mit JWT Authentication, Error Handling und SSR-Kompatibilität
 
-const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 
-const api = axios.create({
-  baseURL: `${API_URL}/api`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// ===============================
+// TYPESCRIPT INTERFACES
+// ===============================
 
-// Error Interceptor
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Status:', error.response?.status);
-      console.error('Data:', error.response?.data);
-      console.error('URL:', error.config?.url);
-    }
-    return Promise.reject(error);
-  }
-);
+// Word Cloud Types
+export interface Word {
+  id: string;
+  text: string;
+  weight: number;
+  color: string;
+  link?: string;
+  description?: string;
+}
 
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  // Check if we're in browser environment
-  if (typeof window === 'undefined') {
-    return {}; // Server-side: no auth headers
-  }
-  
-  const token = localStorage.getItem('strapiToken');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-};
+export interface WordCloud {
+  id: string;
+  title: string;
+  description: string;
+  words: Word[];
+  backgroundColor: string;
+  textColor: string;
+  hoverColor: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
 
-// Word Cloud API - KORRIGIERT für Strapi 5
-export const getAllWordClouds = async (): Promise<WordCloudsResponse> => {
-  try {
-    console.log('🚀 Loading Word Clouds...');
-    console.log('📍 API URL:', `${API_URL}/api/word-clouds`);
-    
-    const response = await api.get('/word-clouds?populate=*&sort=sortierung:asc', {
-      headers: getAuthHeaders()
-    });
-    
-    console.log('✅ Response Status:', response.status);
-    console.log('📊 Response Data:', response.data);
-    console.log('📊 Word Clouds loaded:', response.data.data?.length || 0);
-    
-    return response.data;
-  } catch (error) {
-    console.error('❌ Fehler beim Laden der Word Clouds:', error);
-    throw error;
-  }
-};
-
-export const getActiveWordClouds = async (): Promise<WordCloudsResponse> => {
-  try {
-    const response = await api.get('/word-clouds?populate=*&filters[istAktiv][$eq]=true&sort=sortierung:asc', {
-      headers: getAuthHeaders()
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Fehler beim Laden der aktiven Word Clouds:', error);
-    throw error;
-  }
-};
-
-// Seiten-Konfiguration API - KORRIGIERT für Strapi 5 Single Type
-export const getSeitenConfig = async (): Promise<SeitenConfig> => {
-  try {
-    console.log('🎨 Loading Seiten Config...');
-    console.log('📍 API URL:', `${API_URL}/api/seiten-config`);
-    
-    const response = await api.get('/seiten-config?populate=*', {
-      headers: getAuthHeaders()
-    });
-    
-    console.log('✅ Seiten Config Response:', response.data);
-    
-    // Strapi 5 Single Type gibt direkt die Daten zurück (nicht in data Array)
-    if (response.data && response.data.data) {
-      console.log('✅ Seiten Config loaded successfully');
-      return response.data.data;
-    } else {
-      throw new Error('Keine Seiten-Konfiguration gefunden');
-    }
-  } catch (error) {
-    console.error('❌ Fehler beim Laden der Seiten-Konfiguration:', error);
-    
-    // Fallback-Konfiguration zurückgeben
-    console.log('🔄 Using fallback configuration');
-    return {
-      id: 0,
-      documentId: '',
-      seitenTitel: 'Mannar - Spirituelle Begleitung',
-      seitenBeschreibung: 'Peer-Begleitung und spirituelle Unterstützung',
-      primaryColor: '#4f46e5',
-      secondaryColor: '#10b981',
-      backgroundColor: '#f9fafb',
-      textColor: '#111827',
-      headerColor: '#1f2937',
-      footerColor: '#374151'
+// API Response Types
+export interface ApiResponse<T> {
+  data: T;
+  meta: {
+    pagination?: {
+      page: number;
+      pageSize: number;
+      pageCount: number;
+      total: number;
     };
-  }
-};
+  };
+}
 
-// CRUD Funktionen für Live Editor mit Authentication
-export const createWordCloud = async (wordCloudData: any): Promise<any> => {
-  try {
-    console.log('🆕 Creating Word Cloud:', wordCloudData);
-    
-    // Check if we're in browser environment
-    if (typeof window === 'undefined') {
-      throw new Error('Cannot create word cloud on server side');
-    }
-    
-    const response = await api.post('/word-clouds', 
-      { data: wordCloudData },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      }
-    );
-    console.log('✅ Word Cloud created:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Fehler beim Erstellen der Word Cloud:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
-    }
-    throw error;
-  }
-};
+export interface WordCloudResponse extends ApiResponse<WordCloud> {}
+export interface WordCloudsResponse extends ApiResponse<WordCloud[]> {}
 
-export const updateWordCloud = async (id: string, wordCloudData: any): Promise<any> => {
-  try {
-    console.log('📝 Updating Word Cloud:', id, wordCloudData);
-    
-    // Check if we're in browser environment
-    if (typeof window === 'undefined') {
-      throw new Error('Cannot update word cloud on server side');
-    }
-    
-    const response = await api.put(`/word-clouds/${id}`, 
-      { data: wordCloudData },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      }
-    );
-    console.log('✅ Word Cloud updated:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Fehler beim Aktualisieren der Word Cloud:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
-    }
-    throw error;
-  }
-};
+// Authentication Types
+export interface LoginCredentials {
+  identifier: string; // username or email
+  password: string;
+}
 
-export const deleteWordCloud = async (id: string): Promise<void> => {
-  try {
-    console.log('🗑️ Deleting Word Cloud:', id);
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  confirmed: boolean;
+  blocked: boolean;
+}
+
+export interface AuthResponse {
+  jwt: string;
+  user: AuthUser;
+}
+
+// Error Types
+export interface ApiError {
+  message: string;
+  status: number;
+  code?: string;
+  details?: any;
+}
+
+// ===============================
+// API CONFIGURATION
+// ===============================
+
+class ApiService {
+  private api: AxiosInstance;
+  private baseURL: string;
+
+  constructor() {
+    // Environment-based API URL mit Fallback
+    this.baseURL = this.getApiUrl();
     
-    // Check if we're in browser environment
-    if (typeof window === 'undefined') {
-      throw new Error('Cannot delete word cloud on server side');
-    }
-    
-    await api.delete(`/word-clouds/${id}`, {
-      headers: getAuthHeaders()
+    // Axios Instance mit optimaler Konfiguration
+    this.api = axios.create({
+      baseURL: `${this.baseURL}/api`,
+      timeout: 15000, // 15 Sekunden Timeout
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-    console.log('✅ Word Cloud deleted');
-  } catch (error) {
-    console.error('❌ Fehler beim Löschen der Word Cloud:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
+
+    // Request Interceptor für Authentication
+    this.setupRequestInterceptor();
+    
+    // Response Interceptor für Error Handling
+    this.setupResponseInterceptor();
+  }
+
+  // ===============================
+  // PRIVATE HELPER METHODS
+  // ===============================
+
+  /**
+   * Ermittelt die API URL basierend auf Environment
+   * SSR-kompatible Implementation
+   */
+  private getApiUrl(): string {
+    // Server-Side: Environment Variable verwenden
+    if (typeof window === 'undefined') {
+      return process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
     }
-    throw error;
+    
+    // Client-Side: Next.js Public Environment Variable
+    return process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
   }
-};
 
-export const getWordCloudById = async (id: string): Promise<any> => {
-  try {
-    const response = await api.get(`/word-clouds/${id}?populate=*`, {
-      headers: getAuthHeaders()
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Fehler beim Laden der Word Cloud:', error);
-    throw error;
+  /**
+   * Holt JWT Token aus localStorage (SSR-safe)
+   */
+  private getAuthToken(): string | null {
+    if (typeof window === 'undefined') {
+      return null; // Server-side hat keine localStorage
+    }
+    
+    try {
+      return localStorage.getItem('strapiToken');
+    } catch (error) {
+      console.warn('⚠️ localStorage access failed:', error);
+      return null;
+    }
   }
-};
 
-// Seiten Config Update
-export const updateSeitenConfig = async (configData: any): Promise<any> => {
-  try {
-    console.log('🎨 Updating Seiten Config:', configData);
-    const response = await api.put('/seiten-config', 
-      { data: configData },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
+  /**
+   * Speichert Auth Data in localStorage (SSR-safe)
+   */
+  private saveAuthData(jwt: string, user: AuthUser): void {
+    if (typeof window === 'undefined') {
+      console.warn('⚠️ Cannot save auth data on server-side');
+      return;
+    }
+
+    try {
+      localStorage.setItem('strapiToken', jwt);
+      localStorage.setItem('strapiUser', JSON.stringify(user));
+      console.log('✅ Auth data saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to save auth data:', error);
+    }
+  }
+
+  /**
+   * Entfernt Auth Data aus localStorage
+   */
+  private clearAuthData(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      localStorage.removeItem('strapiToken');
+      localStorage.removeItem('strapiUser');
+      console.log('✅ Auth data cleared');
+    } catch (error) {
+      console.error('❌ Failed to clear auth data:', error);
+    }
+  }
+
+  /**
+   * Setup Request Interceptor für automatische JWT Headers
+   */
+  private setupRequestInterceptor(): void {
+    this.api.interceptors.request.use(
+      (config) => {
+        const token = this.getAuthToken();
+        
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+          console.log('🔐 Request sent with JWT token');
+        } else {
+          console.log('📡 Request sent without authentication');
         }
+
+        // Debug Info für Development
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
+        }
+
+        return config;
+      },
+      (error) => {
+        console.error('❌ Request interceptor error:', error);
+        return Promise.reject(error);
       }
     );
-    console.log('✅ Seiten Config updated:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Fehler beim Aktualisieren der Seiten-Konfiguration:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
+  }
+
+  /**
+   * Setup Response Interceptor für Error Handling
+   */
+  private setupResponseInterceptor(): void {
+    this.api.interceptors.response.use(
+      (response: AxiosResponse) => {
+        // Success Response Logging
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✅ ${response.status} ${response.config.url}`);
+        }
+        return response;
+      },
+      (error: AxiosError) => {
+        const apiError = this.handleApiError(error);
+        
+        // Auto-Logout bei 401 Unauthorized
+        if (apiError.status === 401) {
+          console.warn('🚫 Unauthorized - clearing auth data');
+          this.clearAuthData();
+          
+          // Optional: Redirect to login page
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+        }
+
+        return Promise.reject(apiError);
+      }
+    );
+  }
+
+  /**
+   * Konvertiert Axios Error zu standardisiertem API Error
+   */
+  private handleApiError(error: AxiosError): ApiError {
+    console.error('🚨 API Error Details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+
+    if (error.response) {
+      // Server responded with error status
+      const status = error.response.status;
+      const data = error.response.data as any;
+      
+      return {
+        message: data?.error?.message || data?.message || `HTTP ${status} Error`,
+        status,
+        code: data?.error?.name || 'API_ERROR',
+        details: data?.error?.details || data,
+      };
+    } else if (error.request) {
+      // Network error
+      return {
+        message: 'Netzwerkfehler - Server nicht erreichbar',
+        status: 0,
+        code: 'NETWORK_ERROR',
+        details: error.message,
+      };
+    } else {
+      // Request setup error
+      return {
+        message: error.message || 'Unbekannter Fehler',
+        status: 0,
+        code: 'REQUEST_ERROR',
+        details: error,
+      };
     }
-    throw error;
   }
-};
 
-// Utility Funktionen
-export const getImageUrl = (imageData: any): string => {
-  if (!imageData) return '';
-  
-  const url = imageData.url || imageData.formats?.medium?.url || imageData.formats?.small?.url;
-  
-  if (url?.startsWith('http')) {
-    return url;
+  // ===============================
+  // AUTHENTICATION METHODS
+  // ===============================
+
+  /**
+   * User Login mit Credentials
+   */
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    try {
+      console.log('🔐 Attempting login for:', credentials.identifier);
+      
+      const response = await this.api.post<AuthResponse>('/auth/local', credentials);
+      const { jwt, user } = response.data;
+
+      // Auth Data speichern
+      this.saveAuthData(jwt, user);
+      
+      console.log('✅ Login successful for user:', user.username);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Login failed:', error);
+      throw error;
+    }
   }
-  
-  return `${API_URL}${url}`;
-};
 
-export const formatColor = (color: string): string => {
-  if (!color) return '#333333';
-  if (color.startsWith('#')) return color;
-  return `#${color}`;
-};
-
-// Test API Connection
-export const testApiConnection = async (): Promise<boolean> => {
-  try {
-    const response = await fetch(`${API_URL}/api/word-clouds?pagination[limit]=1`);
-    return response.ok;
-  } catch (error) {
-    console.error('API Connection Test failed:', error);
-    return false;
+  /**
+   * User Logout
+   */
+  async logout(): Promise<void> {
+    try {
+      this.clearAuthData();
+      console.log('✅ Logout successful');
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      throw error;
+    }
   }
-};
 
-// User Authentication Check
-export const checkAuth = (): boolean => {
-  if (typeof window === 'undefined') {
-    return false; // Server-side: not authenticated
+  /**
+   * Überprüft ob User eingeloggt ist
+   */
+  isAuthenticated(): boolean {
+    const token = this.getAuthToken();
+    return !!token;
   }
-  
-  const token = localStorage.getItem('strapiToken');
-  const user = localStorage.getItem('strapiUser');
-  return !!(token && user);
-};
 
-// Clear Auth Data
-export const clearAuth = (): void => {
-  if (typeof window === 'undefined') {
-    return; // Server-side: can't clear storage
+  /**
+   * Holt aktuellen User aus localStorage
+   */
+  getCurrentUser(): AuthUser | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    try {
+      const userStr = localStorage.getItem('strapiUser');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      console.error('❌ Failed to get current user:', error);
+      return null;
+    }
   }
-  
-  localStorage.removeItem('strapiToken');
-  localStorage.removeItem('strapiUser');
-};
+
+  // ===============================
+  // WORD CLOUD METHODS
+  // ===============================
+
+  /**
+   * Alle Word Clouds laden
+   */
+  async getAllWordClouds(): Promise<WordCloud[]> {
+    try {
+      console.log('📡 Loading all word clouds...');
+      
+      const response = await this.api.get<WordCloudsResponse>('/word-clouds?populate=*');
+      
+      console.log('✅ Loaded word clouds:', response.data.data.length);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Failed to load word clouds:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Einzelne Word Cloud laden
+   */
+  async getWordCloud(id: string): Promise<WordCloud> {
+    try {
+      console.log('📡 Loading word cloud:', id);
+      
+      const response = await this.api.get<WordCloudResponse>(`/word-clouds/${id}?populate=*`);
+      
+      console.log('✅ Word cloud loaded:', response.data.data.title);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Failed to load word cloud:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Neue Word Cloud erstellen
+   */
+  async createWordCloud(wordCloudData: Partial<WordCloud>): Promise<WordCloud> {
+    try {
+      console.log('📡 Creating word cloud:', wordCloudData.title);
+      
+      const response = await this.api.post<WordCloudResponse>('/word-clouds', {
+        data: wordCloudData,
+      });
+      
+      console.log('✅ Word cloud created:', response.data.data.id);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Failed to create word cloud:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Word Cloud aktualisieren
+   */
+  async updateWordCloud(id: string, wordCloudData: Partial<WordCloud>): Promise<WordCloud> {
+    try {
+      console.log('📡 Updating word cloud:', id);
+      
+      const response = await this.api.put<WordCloudResponse>(`/word-clouds/${id}`, {
+        data: wordCloudData,
+      });
+      
+      console.log('✅ Word cloud updated:', response.data.data.title);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Failed to update word cloud:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Word Cloud löschen
+   */
+  async deleteWordCloud(id: string): Promise<void> {
+    try {
+      console.log('📡 Deleting word cloud:', id);
+      
+      await this.api.delete(`/word-clouds/${id}`);
+      
+      console.log('✅ Word cloud deleted');
+    } catch (error) {
+      console.error('❌ Failed to delete word cloud:', error);
+      throw error;
+    }
+  }
+
+  // ===============================
+  // LEGACY METHODS (für Abwärtskompatibilität)
+  // ===============================
+
+  /**
+   * @deprecated Use getAllWordClouds() instead
+   * Behält Kompatibilität mit bestehender Angebot-API
+   */
+  async getAllAngebote(): Promise<any> {
+    console.warn('⚠️ getAllAngebote() is deprecated. Use getAllWordClouds() instead.');
+    
+    try {
+      const response = await this.api.get('/angebots');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to load angebote:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * @deprecated Use getWordCloud() instead
+   */
+  async getAngebotBySlug(slug: string): Promise<any> {
+    console.warn('⚠️ getAngebotBySlug() is deprecated. Use getWordCloud() instead.');
+    
+    try {
+      const response = await this.api.get(`/angebots?filters[slug][$eq]=${slug}`);
+      
+      if (response.data.data.length === 0) {
+        throw new Error('Angebot nicht gefunden');
+      }
+      
+      return {
+        data: response.data.data[0],
+        meta: response.data.meta,
+      };
+    } catch (error) {
+      console.error('❌ Failed to load angebot:', error);
+      throw error;
+    }
+  }
+}
+
+// ===============================
+// SINGLETON EXPORT
+// ===============================
+
+// Singleton Pattern für globale API Instance
+const apiService = new ApiService();
+
+// Named Exports für spezifische Funktionen
+export const {
+  login,
+  logout,
+  isAuthenticated,
+  getCurrentUser,
+  getAllWordClouds,
+  getWordCloud,
+  createWordCloud,
+  updateWordCloud,
+  deleteWordCloud,
+  getAllAngebote, // Deprecated
+  getAngebotBySlug, // Deprecated
+} = apiService;
+
+// Default Export der API Service Class
+export default apiService;
