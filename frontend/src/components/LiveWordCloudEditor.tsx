@@ -1,9 +1,9 @@
 // src/components/LiveWordCloudEditor.tsx
-// 🎨 LIVE WORD CLOUD EDITOR - Professional Split-Screen Interface
+// 🎨 LIVE WORD CLOUD EDITOR - Type-Safe Implementation
 
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ComponentErrorBoundary } from './ErrorBoundary';
 import { useDebounce, useNotifications } from '../hooks';
 import type { WordCloud, Word, WordCloudPayload } from '../types';
@@ -78,10 +78,10 @@ const WordForm: React.FC<{
     description: '',
   });
 
-  const [errors, setErrors] = useState<Partial<WordFormData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof WordFormData, string>>>({});
 
   const validateForm = useCallback((): boolean => {
-    const newErrors: Partial<WordFormData> = {};
+    const newErrors: Partial<Record<keyof WordFormData, string>> = {};
 
     if (!formData.text.trim()) {
       newErrors.text = 'Text ist erforderlich';
@@ -126,13 +126,41 @@ const WordForm: React.FC<{
     }
   }, [formData, validateForm, onAddWord]);
 
-  const updateField = useCallback((field: keyof WordFormData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+  // Specific handlers for each field type
+  const updateText = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, text: value }));
+    if (errors.text) {
+      setErrors(prev => ({ ...prev, text: undefined }));
     }
-  }, [errors]);
+  }, [errors.text]);
+
+  const updateWeight = useCallback((value: number) => {
+    setFormData(prev => ({ ...prev, weight: value }));
+    if (errors.weight) {
+      setErrors(prev => ({ ...prev, weight: undefined }));
+    }
+  }, [errors.weight]);
+
+  const updateColor = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, color: value }));
+    if (errors.color) {
+      setErrors(prev => ({ ...prev, color: undefined }));
+    }
+  }, [errors.color]);
+
+  const updateLink = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, link: value }));
+    if (errors.link) {
+      setErrors(prev => ({ ...prev, link: undefined }));
+    }
+  }, [errors.link]);
+
+  const updateDescription = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, description: value }));
+    if (errors.description) {
+      setErrors(prev => ({ ...prev, description: undefined }));
+    }
+  }, [errors.description]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-lg">
@@ -146,7 +174,7 @@ const WordForm: React.FC<{
         <input
           type="text"
           value={formData.text}
-          onChange={(e) => updateField('text', e.target.value)}
+          onChange={(e) => updateText(e.target.value)}
           placeholder="z.B. Meditation"
           className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
             errors.text ? 'border-red-300' : 'border-gray-300'
@@ -157,7 +185,7 @@ const WordForm: React.FC<{
         )}
       </div>
 
-      {/* Weight Slider */}
+      {/* Weight Slider - Fixed with direct number handling */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Gewichtung: {formData.weight}
@@ -167,7 +195,7 @@ const WordForm: React.FC<{
           min="1"
           max="10"
           value={formData.weight}
-          onChange={(e) => updateField('weight', parseInt(e.target.value))}
+          onChange={(e) => updateWeight(Number(e.target.value))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
         />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -183,7 +211,7 @@ const WordForm: React.FC<{
       <ColorPicker
         label="Farbe"
         value={formData.color}
-        onChange={(color) => updateField('color', color)}
+        onChange={updateColor}
       />
       {errors.color && (
         <p className="mt-1 text-sm text-red-600">{errors.color}</p>
@@ -197,7 +225,7 @@ const WordForm: React.FC<{
         <input
           type="url"
           value={formData.link}
-          onChange={(e) => updateField('link', e.target.value)}
+          onChange={(e) => updateLink(e.target.value)}
           placeholder="https://example.com"
           className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
             errors.link ? 'border-red-300' : 'border-gray-300'
@@ -215,7 +243,7 @@ const WordForm: React.FC<{
         </label>
         <textarea
           value={formData.description}
-          onChange={(e) => updateField('description', e.target.value)}
+          onChange={(e) => updateDescription(e.target.value)}
           placeholder="Tooltip-Text für das Wort"
           rows={2}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -252,92 +280,75 @@ const WordList: React.FC<{
   }
 
   return (
-    <div className="space-y-2">
-      <h3 className="font-semibold text-gray-800 mb-3">📝 Wörter ({words.length})</h3>
+    <div className="space-y-3">
+      <h3 className="font-semibold text-gray-800">📝 Wörter ({words.length})</h3>
       
-      {words.map((word) => (
-        <div
-          key={word.id}
-          className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-        >
-          <div className="flex items-center space-x-3 flex-1">
-            <div
-              className="w-4 h-4 rounded-full border border-gray-300"
-              style={{ backgroundColor: word.color }}
-            />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <span
-                  className="font-medium"
-                  style={{ 
-                    color: word.color,
-                    fontSize: `${0.8 + (word.weight / 10) * 0.6}rem`
-                  }}
-                >
-                  {word.text}
-                </span>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  {word.weight}
-                </span>
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {words.map((word) => (
+          <div key={word.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 space-y-2">
+                {/* Word Text */}
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-4 h-4 rounded border border-gray-300"
+                    style={{ backgroundColor: word.color }}
+                  />
+                  <input
+                    type="text"
+                    value={word.text}
+                    onChange={(e) => onUpdateWord(word.id, { text: e.target.value })}
+                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <span className="text-xs text-gray-500 min-w-0">
+                    Gewicht: {word.weight}
+                  </span>
+                </div>
+
+                {/* Weight Slider */}
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={word.weight}
+                  onChange={(e) => onUpdateWord(word.id, { weight: Number(e.target.value) })}
+                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+
+                {/* Link and Description */}
+                {(word.link || word.description) && (
+                  <div className="space-y-1">
+                    {word.link && (
+                      <a
+                        href={word.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      >
+                        🔗 {word.link}
+                      </a>
+                    )}
+                    {word.description && (
+                      <p className="text-xs text-gray-600">
+                        💭 {word.description}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-              {word.description && (
-                <p className="text-xs text-gray-600 mt-1">{word.description}</p>
-              )}
-              {word.link && (
-                
-                  href={word.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block"
-                >
-                  🔗 {word.link}
-                </a>
-              )}
+
+              {/* Delete Button */}
+              <button
+                onClick={() => onDeleteWord(word.id)}
+                className="ml-2 text-red-600 hover:text-red-800 transition-colors"
+                title="Wort löschen"
+              >
+                🗑️
+              </button>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => {
-                const newWeight = prompt('Neue Gewichtung (1-10):', word.weight.toString());
-                if (newWeight && !isNaN(parseInt(newWeight))) {
-                  const weight = Math.max(1, Math.min(10, parseInt(newWeight)));
-                  onUpdateWord(word.id, { weight });
-                }
-              }}
-              className="text-gray-400 hover:text-blue-600 transition-colors"
-              title="Gewichtung ändern"
-            >
-              ⚖️
-            </button>
-            
-            <button
-              onClick={() => {
-                const newColor = prompt('Neue Farbe (Hex-Code):', word.color);
-                if (newColor && /^#[0-9A-Fa-f]{6}$/.test(newColor)) {
-                  onUpdateWord(word.id, { color: newColor });
-                }
-              }}
-              className="text-gray-400 hover:text-green-600 transition-colors"
-              title="Farbe ändern"
-            >
-              🎨
-            </button>
-            
-            <button
-              onClick={() => {
-                if (confirm(`Wort "${word.text}" wirklich löschen?`)) {
-                  onDeleteWord(word.id);
-                }
-              }}
-              className="text-gray-400 hover:text-red-600 transition-colors"
-              title="Löschen"
-            >
-              🗑️
-            </button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
@@ -349,79 +360,81 @@ const WordList: React.FC<{
 const WordCloudPreview: React.FC<{
   wordCloud: WordCloudPayload;
 }> = ({ wordCloud }) => {
-  const { words, backgroundColor } = wordCloud;
+  const getWordStyle = (word: Word) => ({
+    color: word.color,
+    fontSize: `${0.8 + (word.weight / 10) * 2}rem`,
+    fontWeight: Math.min(900, 400 + word.weight * 50),
+    margin: '0.25rem',
+    display: 'inline-block',
+    transition: 'all 0.2s ease',
+    cursor: word.link ? 'pointer' : 'default',
+  });
 
-  // Calculate word positions in a simple cloud layout
-  const wordElements = useMemo(() => {
-    return words.map((word, index) => {
-      // Simple positioning algorithm
-      const angle = (index * 137.5) * (Math.PI / 180); // Golden angle
-      const radius = Math.sqrt(index + 1) * 30;
-      const x = 50 + (radius * Math.cos(angle)) / 4;
-      const y = 50 + (radius * Math.sin(angle)) / 4;
-      
-      return {
-        ...word,
-        x: Math.max(5, Math.min(95, x)),
-        y: Math.max(5, Math.min(95, y)),
-      };
-    });
-  }, [words]);
+  const handleWordClick = (word: Word) => {
+    if (word.link) {
+      window.open(word.link, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
-    <div
-      className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200"
-      style={{ backgroundColor }}
-    >
+    <div className="h-full flex flex-col">
       {/* Preview Header */}
-      <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
-          <h3 className="font-semibold text-gray-800">{wordCloud.title || 'Unbenannte Word Cloud'}</h3>
-          {wordCloud.description && (
-            <p className="text-sm text-gray-600 mt-1">{wordCloud.description}</p>
-          )}
-        </div>
+      <div className="mb-4">
+        <h3 className="text-xl font-bold text-center text-gray-800">
+          {wordCloud.title || 'Unbenannte Word Cloud'}
+        </h3>
+        {wordCloud.description && (
+          <p className="text-center text-gray-600 mt-2">
+            {wordCloud.description}
+          </p>
+        )}
       </div>
 
-      {/* Word Cloud */}
-      <div className="absolute inset-0 pt-24">
-        {wordElements.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">☁️</div>
-              <p>Keine Wörter vorhanden</p>
+      {/* Word Cloud Container */}
+      <div
+        className="flex-1 p-6 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden"
+        style={{
+          backgroundColor: wordCloud.backgroundColor,
+          color: wordCloud.textColor,
+        }}
+      >
+        {wordCloud.words.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-gray-500">
+            <div className="text-center">
+              <p className="text-lg">Keine Wörter vorhanden</p>
               <p className="text-sm">Fügen Sie Wörter hinzu, um die Vorschau zu sehen</p>
             </div>
           </div>
         ) : (
-          wordElements.map((word) => (
-            <div
-              key={word.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-200 hover:scale-110"
-              style={{
-                left: `${word.x}%`,
-                top: `${word.y}%`,
-                color: word.color,
-                fontSize: `${0.8 + (word.weight / 10) * 2}rem`,
-                fontWeight: Math.min(900, 400 + word.weight * 50),
-              }}
-              title={word.description || word.text}
-              onClick={() => {
-                if (word.link) {
-                  window.open(word.link, '_blank', 'noopener,noreferrer');
-                }
-              }}
-            >
-              {word.text}
-            </div>
-          ))
+          <div className="text-center leading-relaxed">
+            {wordCloud.words.map((word) => (
+              <span
+                key={word.id}
+                style={getWordStyle(word)}
+                onClick={() => handleWordClick(word)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = wordCloud.hoverColor;
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = word.color;
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                title={word.description}
+              >
+                {word.text}
+              </span>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Stats Overlay */}
-      <div className="absolute bottom-4 right-4">
-        <div className="bg-black/70 text-white text-xs px-3 py-2 rounded-lg">
-          {words.length} Wörter
+      {/* Statistics */}
+      <div className="mt-4 text-center">
+        <div className="inline-flex items-center space-x-4 text-sm text-gray-600 bg-white/70 px-3 py-2 rounded-lg">
+          <span>📊 {wordCloud.words.length} Wörter</span>
+          <span>🎨 {wordCloud.backgroundColor}</span>
+          <span>✍️ {wordCloud.textColor}</span>
         </div>
       </div>
     </div>
@@ -515,78 +528,50 @@ const LiveWordCloudEditor: React.FC<LiveWordCloudEditorProps> = ({
       ...prev,
       words: prev.words.filter(word => word.id !== id),
     }));
+  }, []);
 
-    success('Wort entfernt', 'Das Wort wurde aus der Word Cloud entfernt');
-  }, [success]);
-
-  // Save word cloud
+  // Save handler
   const handleSave = useCallback(async () => {
-    if (!wordCloud.title.trim()) {
-      showError('Fehler', 'Bitte geben Sie einen Titel ein');
-      return;
-    }
-
-    if (wordCloud.words.length === 0) {
-      showError('Fehler', 'Bitte fügen Sie mindestens ein Wort hinzu');
-      return;
-    }
-
     setIsSaving(true);
     try {
       await onSave(wordCloud);
       setHasUnsavedChanges(false);
-      success('Gespeichert', 'Word Cloud wurde erfolgreich gespeichert');
-    } catch (error) {
-      showError('Speichern fehlgeschlagen', error instanceof Error ? error.message : 'Unbekannter Fehler');
+      success('Word Cloud gespeichert', 'Ihre Änderungen wurden erfolgreich gespeichert');
+    } catch (err) {
+      showError('Speichern fehlgeschlagen', 'Ihre Word Cloud konnte nicht gespeichert werden');
     } finally {
       setIsSaving(false);
     }
   }, [wordCloud, onSave, success, showError]);
 
-  // Cancel editing
-  const handleCancel = useCallback(() => {
-    if (hasUnsavedChanges) {
-      if (confirm('Ungespeicherte Änderungen gehen verloren. Wirklich abbrechen?')) {
-        onCancel();
-      }
-    } else {
-      onCancel();
-    }
-  }, [hasUnsavedChanges, onCancel]);
-
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="h-screen flex flex-col bg-gray-100 relative">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              ✨ Live Word Cloud Editor
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold text-gray-900">
+              🎨 Word Cloud Editor
             </h1>
-            <p className="text-sm text-gray-600">
-              {initialWordCloud ? 'Bearbeiten' : 'Erstellen'} Sie Ihre Word Cloud mit Live-Vorschau
-            </p>
+            {hasUnsavedChanges && (
+              <span className="text-sm text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                ⚠️ Ungespeicherte Änderungen
+              </span>
+            )}
           </div>
           
           <div className="flex items-center space-x-3">
-            {hasUnsavedChanges && (
-              <span className="text-orange-600 text-sm font-medium">
-                🔄 Ungespeicherte Änderungen
-              </span>
-            )}
-            
             <button
-              onClick={handleCancel}
-              disabled={isLoading || isSaving}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+              onClick={onCancel}
+              disabled={isSaving}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Abbrechen
+              ❌ Abbrechen
             </button>
-            
             <button
               onClick={handleSave}
-              disabled={isLoading || isSaving || !hasUnsavedChanges}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+              disabled={isSaving || !hasUnsavedChanges}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {isSaving ? '💾 Speichern...' : '💾 Speichern'}
             </button>
@@ -636,7 +621,7 @@ const LiveWordCloudEditor: React.FC<LiveWordCloudEditorProps> = ({
                 <textarea
                   value={wordCloud.description}
                   onChange={(e) => updateWordCloud({ description: e.target.value })}
-                  placeholder="Beschreibung der Word Cloud"
+                  placeholder="Beschreibung Ihrer Word Cloud"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -645,7 +630,7 @@ const LiveWordCloudEditor: React.FC<LiveWordCloudEditorProps> = ({
 
             {/* Color Settings */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-800">🎨 Farbeinstellungen</h2>
+              <h2 className="text-lg font-semibold text-gray-800">🎨 Farben</h2>
               
               <ColorPicker
                 label="Hintergrundfarbe"
@@ -654,7 +639,7 @@ const LiveWordCloudEditor: React.FC<LiveWordCloudEditorProps> = ({
               />
               
               <ColorPicker
-                label="Standard-Textfarbe"
+                label="Textfarbe"
                 value={wordCloud.textColor}
                 onChange={(color) => updateWordCloud({ textColor: color })}
               />

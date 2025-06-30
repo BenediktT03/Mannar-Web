@@ -408,7 +408,6 @@ export interface ApiSeitenConfigSeitenConfig extends Struct.SingleTypeSchema {
 export interface ApiWordCloudWordCloud extends Struct.CollectionTypeSchema {
   collectionName: 'word_clouds';
   info: {
-    description: 'Bearbeitbare Word Clouds f\u00FCr spirituelle Themen';
     displayName: 'Word Cloud';
     pluralName: 'word-clouds';
     singularName: 'word-cloud';
@@ -416,40 +415,30 @@ export interface ApiWordCloudWordCloud extends Struct.CollectionTypeSchema {
   options: {
     draftAndPublish: true;
   };
-  pluginOptions: {
-    i18n: {
-      localized: false;
-    };
-  };
   attributes: {
-    beschreibung: Schema.Attribute.Text;
+    backgroundColor: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    hintergrundfarbe: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'#ffffff'>;
-    hoverfarbe: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#007bff'>;
-    istAktiv: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    description: Schema.Attribute.Text;
+    hoverColor: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::word-cloud.word-cloud'
     > &
       Schema.Attribute.Private;
-    maxBreite: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<800>;
-    maxHoehe: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<600>;
     publishedAt: Schema.Attribute.DateTime;
-    sortierung: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    textfarbe: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#333333'>;
-    titel: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 255;
-      }>;
+    textColor: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    woerter: Schema.Attribute.Component<'word-cloud.wort', true>;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    words: Schema.Attribute.JSON;
   };
 }
 
@@ -908,7 +897,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -949,6 +937,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
       }>;
+    word_clouds: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::word-cloud.word-cloud'
+    >;
   };
 }
 

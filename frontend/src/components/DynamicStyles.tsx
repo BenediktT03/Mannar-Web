@@ -177,13 +177,6 @@ export const generateWordCloudCSS = (wordCloud: WordCloud): string => {
 
 export default DynamicStyles;
 
-export {
-  useWordCloudStyles,
-  getWordStyle,
-  getWordCloudStyle,
-  generateWordCloudCSS,
-};
-
 // ===============================
 // USAGE EXAMPLES
 // ===============================
