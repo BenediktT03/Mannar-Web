@@ -1,8 +1,9 @@
+ # .gitignore
 # Dependencies
 node_modules/
 */node_modules/
 
-# Environment variables  
+# Environment variables
 .env
 .env.local
 .env.production
@@ -25,7 +26,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Strapi specific
+# Strapi
 backend/.tmp/
 backend/.cache/
 backend/build/
@@ -33,8 +34,3 @@ backend/public/uploads/*
 
 # Vercel
 .vercel
-
-# WICHTIG: NICHT die ganzen Ordner ignorieren!
-# Entferne diese Zeilen falls vorhanden:
-# backend/
-# frontend/

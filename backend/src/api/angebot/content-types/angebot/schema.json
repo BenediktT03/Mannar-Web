@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "angebots",
+  "info": {
+    "singularName": "angebot",
+    "pluralName": "angebots",
+    "displayName": "angebot"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titel": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "string",
+      "required": true
+    },
+    "preis": {
+      "type": "decimal"
+    },
+    "beschreibung": {
+      "type": "blocks"
+    }
+  }
+}
