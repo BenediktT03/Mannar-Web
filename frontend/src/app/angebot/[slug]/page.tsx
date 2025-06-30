@@ -5,9 +5,9 @@ import Link from 'next/link';
 
 // TypeScript: Das sagt, welche Parameter diese Seite bekommt
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // Diese Funktion sagt Next.js, welche Seiten es vorab erstellen soll
@@ -27,7 +27,8 @@ export async function generateStaticParams() {
 // Die Hauptfunktion der Seite
 export default async function AngebotPage({ params }: PageProps) {
   try {
-    const response = await getAngebotBySlug(params.slug);
+    const { slug } = await params; // Params sind jetzt async!
+    const response = await getAngebotBySlug(slug);
     const angebot = response.data;
 
     return (
